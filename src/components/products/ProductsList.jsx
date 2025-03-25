@@ -19,7 +19,7 @@ const ProductList = () => {
       let apiUrl = `http://65.1.108.80:5000/api/get-product`;
 
       if (searchTerm.trim()) {
-        apiUrl = `http://localhost:5000/api/products/search?name=${searchTerm}`;
+        apiUrl = `http://65.1.108.80:5000/api/products/search?name=${searchTerm}`;
       }
       const response = await axios.get(apiUrl, {
         headers: {
