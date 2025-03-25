@@ -50,10 +50,6 @@ const ProductList = () => {
     }
   };
 
-  const handleReset = () => {
-    setSearchTerm("");
-    setSelectedCategory("");
-  };
 
   return (
     <div className="container mt-5">
@@ -109,8 +105,8 @@ const ProductList = () => {
                         />
                       </td>
                       <td>{product.category}</td>
-                      <td className="text-success fw-bold">{product.offer_price}</td>
-                      <td className="text-decoration-line-through text-primary">{product.actual_price}</td>
+                      <td className="text-success fw-bold">₹{product.offer_price}</td>
+                      <td className="text-decoration-line-through text-primary">₹{product.actual_price}</td>
                       <td>
                         <Link to={`/add-product/{product.product_id}`}>
                           <button className="btn btn-sm btn-warning me-2">

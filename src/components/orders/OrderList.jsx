@@ -39,13 +39,13 @@ const OrderList = () => {
   const confirmStatusChange = async () => {
     if (!selectedOrder || !newStatus) return;
     
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("authToken");
     if (!token) {
       console.error("Error: Token not found! Please log in again.");
       alert("Session expired. Please log in again.");
       return;
     }
-  
+  console.log(token)
     try {
       await axios.put(
         `http://65.1.108.80:5000/api/update-status/${selectedOrder.booking_id}`,
@@ -143,7 +143,9 @@ const OrderList = () => {
                   <th>Address</th>
                   <th>Price</th>
                   <th>Order Status</th>
+                  <th>Order Time</th>
                   <th>Actions</th>
+                 
                 </tr>
               </thead>
               <tbody>
@@ -155,7 +157,7 @@ const OrderList = () => {
                       <td>{order.phone_number}</td>
                       <td>{order.user_name}</td>
                       <td>{order.delivery_address}</td>
-                      <td>{order.total_price}</td>
+                      <td>₹{order.total_price}</td>
                       <td>
                 <select className={`form-select ${statusColors[order.order_status]}`} value={order.order_status} onChange={(e) => handleChangeStatus(order, e.target.value)}>
                           <option value="Pending" className="bg-warning text-dark">Pending</option>
@@ -165,6 +167,16 @@ const OrderList = () => {
                           <option value="Cancelled" className="bg-danger text-white">Cancelled</option>
                 </select>
               </td>
+              <td>{new Date(order.createdAt).toLocaleString("en-GB", { 
+  timeZone: "Asia/Kolkata", 
+  day: "2-digit", 
+  month: "short", 
+  year: "numeric", 
+  hour: "2-digit", 
+  minute: "2-digit", 
+  hour12: false 
+}).replace(",", "")}</td>
+
                       <td>
                         <button className="btn btn-primary btn-sm" onClick={() => handleViewOrder(order)}>
                           <FontAwesomeIcon icon={faEye} /> View
