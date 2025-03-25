@@ -9,43 +9,51 @@ const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-
   useEffect(() => {
-    fetchProducts(selectedCategory);
-  }, [selectedCategory]);
+    fetchProducts();
+  }, [searchTerm, selectedCategory]); // Trigger search when typing
 
   const fetchProducts = async () => {
     try {
-      const token = localStorage.getItem("authToken"); 
-      const response = await axios.get(`http://65.1.108.80:5000/api/get-product`, {
+      const token = localStorage.getItem("authToken");
+      let apiUrl = `http://65.1.108.80:5000/api/get-product`;
+
+      if (searchTerm.trim()) {
+        apiUrl = `http://localhost:5000/api/products/search?name=${searchTerm}`;
+      }
+      const response = await axios.get(apiUrl, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
       setProducts(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
-      setProducts([]); // Clear products if error occurs
+      setProducts([]);
     }
   };
 
   const deleteProduct = async (product_id) => {
     try {
       const token = localStorage.getItem("authToken");
-  
+
       await axios.delete(`http://65.1.108.80:5000/api/delete-product/${product_id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       fetchProducts(); // Refresh product list after deletion
     } catch (error) {
       console.error("Error deleting product:", error);
     }
   };
-  
 
+  const handleReset = () => {
+    setSearchTerm("");
+    setSelectedCategory("");
+  };
 
   return (
     <div className="container mt-5">
@@ -56,29 +64,17 @@ const ProductList = () => {
         </Link>
       </div>
 
-      {/* Category Filter */}
-      <div className="card p-3 shadow mb-4">
+      {/* Category & Search Filters */}
+      <div className=" p-3  mb-4">
         <div className="g-3 row">
-          <div className="col-md-3">
+          <div className="col-md-4">
             <input
               type="text"
               className="form-control"
-              placeholder="Search by Name or Category"
+              placeholder="Search by Name"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-          </div>
-          <div className="col-md-3">
-            <select
-              className="form-select"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <option value="">All Categories</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Fashion">Fashion</option>
-              <option value="Home & Kitchen">Home & Kitchen</option>
-            </select>
           </div>
         </div>
       </div>
@@ -106,15 +102,21 @@ const ProductList = () => {
                       <td>{index + 1}</td>
                       <td>{product.product_name}</td>
                       <td>
-                        <img  src={`http://65.1.108.80:5000/${product.image}`} alt={product.name} style={{ width: "60px" }} />
+                        <img
+                          src={`http://65.1.108.80:5000/${product.image}`}
+                          alt={product.name}
+                          style={{ width: "60px" }}
+                        />
                       </td>
                       <td>{product.category}</td>
-                      <td className="text-success fw-bold">${product.offer_price}</td>
-                      <td className="text-decoration-line-through text-primary">${product.actual_price}</td>
+                      <td className="text-success fw-bold">{product.offer_price}</td>
+                      <td className="text-decoration-line-through text-primary">{product.actual_price}</td>
                       <td>
-                         <Link to={`/add-product/${product.product_id}`}> <button className="btn btn-sm btn-warning me-2">
-                          <FontAwesomeIcon icon={faEdit} />
-                        </button></Link>
+                        <Link to={`/add-product/{product.product_id}`}>
+                          <button className="btn btn-sm btn-warning me-2">
+                            <FontAwesomeIcon icon={faEdit} />
+                          </button>
+                        </Link>
                         <button className="btn btn-danger btn-sm" onClick={() => deleteProduct(product.product_id)}>
                           <FontAwesomeIcon icon={faTrash} />
                         </button>

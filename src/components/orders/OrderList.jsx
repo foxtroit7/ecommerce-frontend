@@ -13,21 +13,7 @@ const OrderList = () => {
   const [priceRange, setPriceRange] = useState("");
   const [newStatus, setNewStatus] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("http://65.1.108.80:5000/api/all-bookings", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setOrders(response.data);
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-      }
-    };
-    fetchOrders();
-  }, []);
-
+  
   const handleViewOrder = (order) => {
     setSelectedOrder(order);
     setShowModal(true);
@@ -63,9 +49,12 @@ const OrderList = () => {
     try {
       await axios.put(
         `http://65.1.108.80:5000/api/update-status/${selectedOrder.booking_id}`,
-        { order_status: newStatus },
-    
+        { order_status: newStatus }, // Request body
+        {
+          headers: { Authorization: `Bearer ${token}` }, // Headers
+        }
       );
+      
   
       setOrders(orders.map(order =>
         order.booking_id === selectedOrder.booking_id
@@ -77,6 +66,26 @@ const OrderList = () => {
       console.error("Error updating order status:", error);
     }
   };
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        let url = "http://65.1.108.80:5000/api/all-bookings";
+  
+        if (searchTerm.trim() !== "") {
+          url = `http://65.1.108.80:5000/api/search-booking?booking_id=${searchTerm}`;
+        } else if (statusFilter.trim() !== "") {
+          url = `http://65.1.108.80:5000/api/all-bookings?order_status=${statusFilter}`;
+        }
+  
+        const response = await axios.get(url);
+        setOrders(response.data);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      }
+    };
+  
+    fetchOrders();
+  }, [searchTerm, statusFilter]);
   
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
@@ -102,12 +111,12 @@ const OrderList = () => {
           <input
             type="text"
             className="form-control"
-            placeholder="Search by Order ID or User ID"
+            placeholder="Search by Order ID"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="col-md-3">
+        <div className="col-md-4">
           <select className="form-control" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">Filter by Status</option>
             <option value="Shipped">Shipped</option>
@@ -118,14 +127,6 @@ const OrderList = () => {
           </select>
         </div>
         <div className="col-md-3">
-          <select className="form-control" value={priceRange} onChange={(e) => setPriceRange(e.target.value)}>
-            <option value="">Filter by Price</option>
-            <option value="low">Below $1000</option>
-            <option value="medium">$1000 - $2000</option>
-            <option value="high">Above $2000</option>
-          </select>
-        </div>
-        <div className="col-md-2">
           <button className="btn btn-danger w-100" onClick={resetFilters}>Reset</button>
         </div>
       </div>
@@ -137,7 +138,7 @@ const OrderList = () => {
                 <tr>
                   <th>#</th>
                   <th>Order ID</th>
-                  <th>User ID</th>
+                  <th>Phone Number</th>
                   <th>Name</th>
                   <th>Address</th>
                   <th>Price</th>
@@ -151,7 +152,7 @@ const OrderList = () => {
                     <tr key={order._id}>
                       <td>{index + 1}</td>
                       <td>{order.booking_id}</td>
-                      <td>{order.user_id}</td>
+                      <td>{order.phone_number}</td>
                       <td>{order.user_name}</td>
                       <td>{order.delivery_address}</td>
                       <td>{order.total_price}</td>

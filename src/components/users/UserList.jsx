@@ -7,19 +7,24 @@ const UserList = () => {
   const [filterStatus, setFilterStatus] = useState("");
   const [users, setUsers] = useState([]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (query = "") => {
     try {
       const token = localStorage.getItem("authToken"); // Retrieve token from localStorage
-  
-      const response = await axios.get("http://65.1.108.80:5000/api/user/details", {
-        headers: {
-          Authorization: `Bearer ${token}`, // Include token in headers
-        },
+
+      const url = query
+        ? `http://65.1.108.80:5000/api/user/details?name=${query}`
+        : "http://65.1.108.80:5000/api/user/details";
+
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-  
-      setUsers(response.data); // Assuming API returns an array of users
+
+      setUsers(Array.isArray(response.data) ? response.data : [response.data]); // Ensure data is in array format
     } catch (error) {
       console.error("Error fetching users:", error);
+      setUsers([]); // Clear users if error occurs
+    } finally {
+
     }
   };
   
@@ -27,14 +32,7 @@ const UserList = () => {
     fetchUsers();
   }, []);
 
-  // Toggle user status (for frontend display only)
-  const toggleActivity = (id) => {
-    setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user._id === id ? { ...user, status: !user.status } : user
-      )
-    );
-  };
+
 
   // Filter Users based on search & status
   const filteredUsers = users.filter((user) => {
@@ -49,7 +47,17 @@ const UserList = () => {
     setSearchTerm("");
     setFilterStatus("");
   };
+  // Handle search input change
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
 
+    if (value.trim() === "") {
+      fetchUsers(); // Fetch all users if search is empty
+    } else {
+      fetchUsers(value); // Fetch filtered user by user_id
+    }
+  };
   return (
     <div className="container mt-5">
       <h2 className="text-center text-uppercase fw-bold mb-4 text-gradient">
@@ -61,9 +69,9 @@ const UserList = () => {
         <input
           type="text"
           className="form-control"
-          placeholder="Search by Name or User ID"
+          placeholder="Search by User Name"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearch}
         />
         <select
           className="form-select"
@@ -87,7 +95,6 @@ const UserList = () => {
                   <th>#</th>
                   <th>Name</th>
                   <th>Mobile No</th>
-                  <th>User ID</th>
                   <th>Address</th>
                   <th>Activity</th>
                 </tr>
@@ -98,12 +105,10 @@ const UserList = () => {
                     <td className="fw-bold">{index + 1}</td>
                     <td className="fw-semibold">{user.name}</td>
                     <td>{user.phone_number}</td>
-                    <td>{user.user_id}</td>
                     <td>{user.address}</td>
                     <td>
                       <button
                         className={`btn btn-sm ${user.status ? "btn-success" : "btn-secondary"}`}
-                        onClick={() => toggleActivity(user._id)}
                       >
                         {user.status ? "Active" : "Inactive"}
                       </button>

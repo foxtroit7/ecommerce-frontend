@@ -18,7 +18,7 @@ const Contact = () => {
   const fetchContactContent = async () => {
     try {
       const token = localStorage.getItem("authToken"); // Retrieve token
-      const response = await axios.get("http://localhost:5000/api/contact", {
+      const response = await axios.get("http://65.1.108.80:5000/api/contact", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -41,7 +41,7 @@ const Contact = () => {
       const token = localStorage.getItem("authToken"); // Retrieve token
 
       await axios.put(
-        "http://localhost:5000/api/contact",
+        "http://65.1.108.80:5000/api/contact",
         { content: modalContent },
         { headers: { Authorization: `Bearer ${token}` } }
       );
