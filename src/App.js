@@ -23,9 +23,9 @@ function App() {
     <Route path="/user-list" element={<UserList />} />
     <Route path="/order-list" element={<OrderList />} />
     <Route path="/add-category" element={<AddCategory />} />
-    <Route path="/add-category/:category_id" element={<AddCategory />} />
+    <Route path="/edit-category/:category_id" element={<AddCategory />} />
     <Route path="/add-product" element={<AddProduct />} />
-    <Route path="/add-product/:product_id" element={<AddProduct />} />
+    <Route path="/edit-product/:product_id" element={<AddProduct />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/terms" element={<Terms />} />
     <Route path="/contact" element={<Contact />} />

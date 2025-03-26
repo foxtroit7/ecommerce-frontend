@@ -4,29 +4,28 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
+import { Modal, Button } from "react-bootstrap";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm, selectedCategory]); // Trigger search when typing
+  }, [searchTerm]);
 
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem("authToken");
       let apiUrl = `http://65.1.108.80:5000/api/get-product`;
-
       if (searchTerm.trim()) {
         apiUrl = `http://65.1.108.80:5000/api/products/search?name=${searchTerm}`;
       }
       const response = await axios.get(apiUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       setProducts(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -34,22 +33,23 @@ const ProductList = () => {
     }
   };
 
-  const deleteProduct = async (product_id) => {
+  const confirmDelete = (productId) => {
+    setSelectedProductId(productId);
+    setShowModal(true);
+  };
+
+  const deleteProduct = async () => {
     try {
       const token = localStorage.getItem("authToken");
-
-      await axios.delete(`http://65.1.108.80:5000/api/delete-product/${product_id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await axios.delete(`http://65.1.108.80:5000/api/delete-product/${selectedProductId}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      fetchProducts(); // Refresh product list after deletion
+      setShowModal(false);
+      fetchProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
     }
   };
-
 
   return (
     <div className="container mt-5">
@@ -59,10 +59,9 @@ const ProductList = () => {
           <button className="btn btn-primary fw-bold">+ Add Product</button>
         </Link>
       </div>
-
-      {/* Category & Search Filters */}
-      <div className=" p-3  mb-4">
-        <div className="g-3 row">
+      
+      <div className="p-3 mb-4">
+        <div className="row g-3">
           <div className="col-md-4">
             <input
               type="text"
@@ -75,7 +74,6 @@ const ProductList = () => {
         </div>
       </div>
 
-      {/* Product Table */}
       <div className="card border-0 rounded-4 shadow-lg">
         <div className="card-body p-4">
           <div className="table-responsive">
@@ -108,12 +106,15 @@ const ProductList = () => {
                       <td className="text-success fw-bold">₹{product.offer_price}</td>
                       <td className="text-decoration-line-through text-primary">₹{product.actual_price}</td>
                       <td>
-                        <Link to={`/add-product/{product.product_id}`}>
+                        <Link to={`/edit-product/${product.product_id}`}>
                           <button className="btn btn-sm btn-warning me-2">
                             <FontAwesomeIcon icon={faEdit} />
                           </button>
                         </Link>
-                        <button className="btn btn-danger btn-sm" onClick={() => deleteProduct(product.product_id)}>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => confirmDelete(product.product_id)}
+                        >
                           <FontAwesomeIcon icon={faTrash} />
                         </button>
                       </td>
@@ -129,6 +130,23 @@ const ProductList = () => {
           </div>
         </div>
       </div>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Are you sure you want to delete this product?</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={deleteProduct}>
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       <style>{`
         .text-gradient {

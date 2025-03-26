@@ -8,6 +8,8 @@ import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
 
   useEffect(() => {
     fetchCategories();
@@ -16,35 +18,33 @@ const CategoryList = () => {
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem("authToken"); // Retrieve token
-  
       const response = await axios.get("http://65.1.108.80:5000/api/category", {
-        headers: {
-          Authorization: `Bearer ${token}`, // Include token
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-  
-      setCategories(response.data); // Assuming API returns an array of categories
+      setCategories(response.data);
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
   };
 
-  const deleteCategory = async (categoryId) => {
+  const handleDeleteClick = (category) => {
+    setCategoryToDelete(category);
+    setShowModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!categoryToDelete) return;
     try {
       const token = localStorage.getItem("authToken");
-  
-      await axios.delete(`http://65.1.108.80:5000/api/category/${categoryId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await axios.delete(`http://65.1.108.80:5000/api/category/${categoryToDelete.category_id}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-  
-      fetchCategories(); // Refresh categories after deletion
+      setShowModal(false);
+      fetchCategories();
     } catch (error) {
       console.error("Error deleting category:", error);
     }
   };
-  
 
   const filteredCategories = categories.filter((category) =>
     category.category.toLowerCase().includes(searchTerm.toLowerCase())
@@ -58,7 +58,7 @@ const CategoryList = () => {
           <button className="btn btn-primary fw-bold">+ Add Category</button>
         </Link>
       </div>
-      
+
       <div className="row mb-3">
         <div className="col-md-6">
           <input
@@ -98,14 +98,14 @@ const CategoryList = () => {
                         />
                       </td>
                       <td>
-                        <Link to={`/add-category/${category.category_id}`}>
+                        <Link to={`/edit-category/${category.category_id}`}>
                           <button className="btn btn-sm btn-warning text-light me-2">
                             <FontAwesomeIcon icon={faEdit} />
                           </button>
                         </Link>
                         <button
                           className="btn btn-danger btn-sm text-light"
-                          onClick={() => deleteCategory(category.category_id)}
+                          onClick={() => handleDeleteClick(category)}
                         >
                           <FontAwesomeIcon icon={faTrash} />
                         </button>
@@ -124,6 +124,36 @@ const CategoryList = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showModal && categoryToDelete && (
+        <div className="modal fade show d-block" tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirm Deletion</h5>
+                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                <p>
+                  Are you sure you want to delete <b>{categoryToDelete.category}</b>?
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                  Cancel
+                </button>
+                <button className="btn btn-danger" onClick={confirmDelete}>
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Backdrop for Modal */}
+      {showModal && <div className="modal-backdrop fade show"></div>}
     </div>
   );
 };

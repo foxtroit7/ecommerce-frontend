@@ -8,8 +8,7 @@ const AddProduct = () => {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
-  const [category, setCategory] = useState("");
-  const [categoryId, setCategoryId] = useState(""); // Stores category_id
+  const [categoryId, setCategoryId] = useState("");
   const [offerPrice, setOfferPrice] = useState("");
   const [actualPrice, setActualPrice] = useState("");
   const [description, setDescription] = useState("");
@@ -27,13 +26,19 @@ const AddProduct = () => {
       })
         .then((res) => res.json())
         .then((data) => {
+          console.log("Fetched Product Data:", data); // Debugging output
+
           if (data) {
             setName(data.product_name);
-            setCategory(data.category);
-            setCategoryId(data.category_id); // Ensure category_id is set
+            setCategoryId(data.category_id); // Ensure category ID is stored
             setOfferPrice(data.offer_price);
             setActualPrice(data.actual_price);
             setDescription(data.description);
+
+            // Ensure full image URL is set if an image exists
+            if (data.image) {
+              setImage(`http://65.1.108.80:5000/${data.image}`);
+            }
           }
         })
         .catch((error) => console.error("Error fetching product:", error));
@@ -65,12 +70,8 @@ const AddProduct = () => {
 
   // Handle category selection
   const handleCategoryChange = (e) => {
-    const selectedCategory = e.target.value;
-    setCategory(selectedCategory);
-
-    // Find the corresponding category ID
-    const selectedCategoryData = categories.find(cat => cat.category === selectedCategory);
-    setCategoryId(selectedCategoryData ? selectedCategoryData.category_id : ""); // Ensure we store the correct category_id
+    const selectedCategoryId = e.target.value;
+    setCategoryId(selectedCategoryId);
   };
 
   // Handle form submission
@@ -89,7 +90,7 @@ const AddProduct = () => {
     formData.append("offer_price", offerPrice);
     formData.append("actual_price", actualPrice);
     formData.append("description", description);
-    if (image) {
+    if (image && typeof image !== "string") {
       formData.append("image", image);
     }
 
@@ -149,20 +150,32 @@ const AddProduct = () => {
               onChange={(e) => setImage(e.target.files[0])}
               accept="image/*"
             />
+
+            {/* Show existing image preview */}
+            {image && (
+              <div className="mt-2">
+                <img 
+                  src={typeof image === "string" ? image : URL.createObjectURL(image)} 
+                  alt="Product Preview" 
+                  className="img-thumbnail" 
+                  style={{ maxWidth: "150px", height: "auto" }} 
+                />
+              </div>
+            )}
           </div>
 
           <div className="mb-3">
             <label className="form-label fw-bold">Category</label>
             <select
               className="form-select"
-              value={category}
+              value={categoryId} // Select category ID instead of category name
               onChange={handleCategoryChange}
               required
             >
               <option value="">Select Category</option>
               {categories.length > 0 ? (
                 categories.map((cat) => (
-                  <option key={cat.category_id} value={cat.category}>
+                  <option key={cat.category_id} value={cat.category_id}>
                     {cat.category}
                   </option>
                 ))
@@ -227,5 +240,4 @@ const AddProduct = () => {
     </div>
   );
 };
-
 export default AddProduct;
