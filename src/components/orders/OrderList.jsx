@@ -231,7 +231,6 @@ const OrderList = () => {
             <div className="col-md-6"><p><strong>Delivery Address:</strong> {selectedOrder.delivery_address}</p></div>
             <div className="col-md-6"><p><strong>Phone Number:</strong> {selectedOrder.phone_number}</p></div>
             <div className="col-md-6"><p><strong>Status:</strong> {selectedOrder.order_status}</p></div>
-            <div className="col-md-6"><p><strong>Quantity:</strong> {selectedOrder.quantity}</p></div>
             <div className="col-md-6"><p><strong>Total Price:</strong> ₹{selectedOrder.total_price}</p></div>
             <div className="col-md-6"><p><strong>Created At:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p></div>
             <div className="col-md-6"><p><strong>Updated At:</strong> {new Date(selectedOrder.updatedAt).toLocaleString()}</p></div>
@@ -242,7 +241,7 @@ const OrderList = () => {
         {selectedOrder.products.map((product) => (
           <div key={product.product_id} className="mb-3">
             <div className="row">
-              <div className="col-md-6">
+              <div className="col-md-4">
                 <p><strong>Product Name:</strong> {product.product_name}</p>
                 <p><strong>Offer Price:</strong> ₹{product.offer_price}</p>
               </div>
@@ -253,6 +252,7 @@ const OrderList = () => {
             </div>
           </div>
         ))}
+        <p><strong>Quantity:</strong> {selectedOrder.quantity}</p>
       </div>
       <div className="modal-footer">
         <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Close</button>
