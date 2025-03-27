@@ -23,7 +23,6 @@ const Login = () => {
       // Store token in localStorage
       localStorage.setItem("authToken", token);
 
-      alert("Login Successful!");
       window.location.href = "/category"; // Redirect to admin dashboard
     } catch (err) {
       setError(err.response?.data?.message || "Login failed!");

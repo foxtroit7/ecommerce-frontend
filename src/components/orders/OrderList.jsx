@@ -13,7 +13,8 @@ const OrderList = () => {
   const [priceRange, setPriceRange] = useState("");
   const [newStatus, setNewStatus] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 15;
   const handleViewOrder = (order) => {
     setSelectedOrder(order);
     setShowModal(true);
@@ -86,7 +87,10 @@ const OrderList = () => {
   
     fetchOrders();
   }, [searchTerm, statusFilter]);
-  
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentOrders = orders.slice(indexOfFirstRow, indexOfLastRow);
+  const totalPages = Math.ceil(orders.length / rowsPerPage);
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.booking_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -149,8 +153,9 @@ const OrderList = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.length > 0 ? (
-                  filteredOrders.map((order, index) => (
+              {currentOrders.length > 0 ? (
+                  currentOrders.map((order, index) => (
+              
                     <tr key={order._id}>
                       <td>{index + 1}</td>
                       <td>{order.booking_id}</td>
@@ -193,40 +198,70 @@ const OrderList = () => {
             </table>
           </div>
         </div>
+        <nav>
+        <ul className="pagination justify-content-center">
+          <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+            <button className="page-link" onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+          </li>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <li key={i} className={`page-item ${currentPage === i + 1 ? "active" : ""}`}>
+              <button className="page-link" onClick={() => setCurrentPage(i + 1)}>{i + 1}</button>
+            </li>
+          ))}
+          <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+            <button className="page-link" onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+          </li>
+        </ul>
+      </nav>
       </div>
     {/* Order Details Modal */}
     {showModal && selectedOrder && (
-        <div className="modal fade show d-block" tabIndex="-1" role="dialog">
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Order Details</h5>
-                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+      <div className="modal fade show d-block" tabIndex="-1" role="dialog">
+  <div className="modal-dialog modal-lg">
+    <div className="modal-content">
+      <div className="modal-header">
+        <h5 className="modal-title">Order Details</h5>
+        <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+      </div>
+      <div className="modal-body">
+        <div className="container">
+          <div className="row">
+            <div className="col-md-6"><p><strong>Booking ID:</strong> {selectedOrder.booking_id}</p></div>
+            <div className="col-md-6"><p><strong>User Name:</strong> {selectedOrder.user_name}</p></div>
+            <div className="col-md-6"><p><strong>Delivery Address:</strong> {selectedOrder.delivery_address}</p></div>
+            <div className="col-md-6"><p><strong>Phone Number:</strong> {selectedOrder.phone_number}</p></div>
+            <div className="col-md-6"><p><strong>Status:</strong> {selectedOrder.order_status}</p></div>
+            <div className="col-md-6"><p><strong>Quantity:</strong> {selectedOrder.quantity}</p></div>
+            <div className="col-md-6"><p><strong>Total Price:</strong> ₹{selectedOrder.total_price}</p></div>
+            <div className="col-md-6"><p><strong>Created At:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p></div>
+            <div className="col-md-6"><p><strong>Updated At:</strong> {new Date(selectedOrder.updatedAt).toLocaleString()}</p></div>
+          </div>
+        </div>
+        <hr />
+        <h5>Products</h5>
+        {selectedOrder.products.map((product) => (
+          <div key={product.product_id} className="mb-3">
+            <div className="row">
+              <div className="col-md-6">
+                <p><strong>Product Name:</strong> {product.product_name}</p>
+                <p><strong>Offer Price:</strong> ₹{product.offer_price}</p>
               </div>
-              <div className="modal-body">
-                <p><strong>Booking ID:</strong> {selectedOrder.booking_id}</p>
-                <p><strong>User ID:</strong> {selectedOrder.user_id}</p>
-                <p><strong>Status:</strong> {selectedOrder.order_status}</p>
-                <p><strong>Created At:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
-                <p><strong>Updated At:</strong> {new Date(selectedOrder.updatedAt).toLocaleString()}</p>
-                <hr />
-                <h5>Products</h5>
-                {selectedOrder.products.map((product) => (
-                  <div key={product.product_id} className="mb-3">
-                    <p><strong>Product Name:</strong> {product.product_name}</p>
-                    <p><strong>Offer Price:</strong> ${product.offer_price}</p>
-                    <p><strong>Actual Price:</strong> ${product.actual_price}</p>
-                    <img src={`http://65.1.108.80:5000/${product.image}`} alt={product.product_name} width={100} />
-                  </div>
-                ))}
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Close</button>
+              <div className="col-md-6">
+                <p><strong>Actual Price:</strong> ₹{product.actual_price}</p>
+                <img src={`http://65.1.108.80:5000/${product.image}`} alt={product.product_name} width={100} />
               </div>
             </div>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
+      <div className="modal-footer">
+        <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+)}
+
          {showConfirmModal && (
         <div className="modal fade show d-block" tabIndex="-1" role="dialog">
           <div className="modal-dialog">
