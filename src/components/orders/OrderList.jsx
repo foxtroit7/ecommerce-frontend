@@ -77,35 +77,19 @@ const OrderList = () => {
         } else if (statusFilter.trim() !== "") {
           url = `http://65.1.108.80:5000/api/all-bookings?order_status=${statusFilter}`;
         }
-  
         const response = await axios.get(url);
         setOrders(response.data);
+        console.log(response.data)
       } catch (error) {
         console.error("Error fetching orders:", error);
       }
     };
-  
     fetchOrders();
   }, [searchTerm, statusFilter]);
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentOrders = orders.slice(indexOfFirstRow, indexOfLastRow);
   const totalPages = Math.ceil(orders.length / rowsPerPage);
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch =
-      order.booking_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user_id.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus = statusFilter ? order.order_status === statusFilter : true;
-    const matchesPrice = priceRange === "" || order.products.some(product => {
-      const price = product.offer_price;
-      return priceRange === "low" ? price < 1000 :
-             priceRange === "medium" ? price >= 1000 && price <= 2000 :
-             price > 2000;
-    });
-
-    return matchesSearch && matchesStatus && matchesPrice;
-  });
 
   return (
     <div className="container mt-5">
@@ -244,6 +228,7 @@ const OrderList = () => {
               <div className="col-md-4">
                 <p><strong>Product Name:</strong> {product.product_name}</p>
                 <p><strong>Offer Price:</strong> ₹{product.offer_price}</p>
+                <p><strong>Quantity:</strong> {product.quantity}</p>
               </div>
               <div className="col-md-6">
                 <p><strong>Actual Price:</strong> ₹{product.actual_price}</p>
@@ -252,7 +237,7 @@ const OrderList = () => {
             </div>
           </div>
         ))}
-        <p><strong>Quantity:</strong> {selectedOrder.quantity}</p>
+    
       </div>
       <div className="modal-footer">
         <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Close</button>
@@ -262,7 +247,7 @@ const OrderList = () => {
 </div>
 )}
 
-         {showConfirmModal && (
+        {showConfirmModal && (
         <div className="modal fade show d-block" tabIndex="-1" role="dialog">
           <div className="modal-dialog">
             <div className="modal-content">
